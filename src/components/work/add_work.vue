@@ -84,13 +84,13 @@
               <div class="panel panel-default"  style="margin-top: 10px; background-color: #F9FAFC; width: 222px;overflow-y:scroll; ">
                 <ul style="margin-left: 0px;padding-left: 0px; height: 300px" >
                   <li v-for="(item,index) in workContent" style="list-style-type:none; margin-left: 10px">
-                    <el-checkbox  v-if="item.subs.length == 0">{{item.name}}</el-checkbox>
+                    <el-checkbox  v-if="item.subs.length == 0" @change="parentCheck(item)">{{item.name}}</el-checkbox>
                     <div v-else>
                       <span class="glyphicon glyphicon-plus" style="margin-left: 3px; color: #20A0FF" @click="showChildren(index)"></span>
                       <strong style="margin-left: 2px" >{{item.name}}</strong>
                       <ul v-show="1">
-                        <li v-for="(subItem,index) in item.subs" style="list-style-type:none;">
-                          <el-checkbox style="font-weight: normal">{{subItem.name}}</el-checkbox>
+                        <li v-for="subItem in item.subs" style="list-style-type:none;">
+                          <el-checkbox style="font-weight: normal" @change="childCheck(item, subItem)">{{subItem.name}}</el-checkbox>
                         </li>
                       </ul>
                     </div>
@@ -104,14 +104,14 @@
               <div class="panel panel-default"  style="margin-top: 10px; background-color: #F9FAFC; width: 222px;overflow-y:scroll; "
                    v-if="form.choosedContent.length > 0">
                 <ul style="margin-left: 0px;padding-left: 0px; height: 300px" >
-                  <li v-for="(item,index) in workContent" style="list-style-type:none; margin-left: 10px">
-                    <el-checkbox  v-if="item.subs.length == 0">{{item.name}}</el-checkbox>
+                  <li v-for="(item,index) in form.choosedContent" style="list-style-type:none; margin-left: 10px">
+                    <div v-if="item.subs.length == 0"><strong style="margin-left: 2px">{{item.name}}</strong></div>
                     <div v-else>
-                      <span class="glyphicon glyphicon-plus" style="margin-left: 3px; color: #20A0FF" @click="showChildren(index)"></span>
-                      <strong style="margin-left: 2px" >{{item.name}}</strong>
+                      <span style="margin-left: 3px; color: #20A0FF" @click="showChildren(index)"></span>
+                      <strong style="margin-left: 2px">{{item.name}}</strong>
                       <ul v-show="1">
                         <li v-for="(subItem,index) in item.subs" style="list-style-type:none;">
-                          <el-checkbox style="font-weight: normal">{{subItem.name}}</el-checkbox>
+                          <div style="font-weight: normal">{{subItem.name}}</div>
                         </li>
                       </ul>
                     </div>
@@ -151,15 +151,15 @@
           choosedContent:[]
         },
         trainLineNumbers: [],
-        workContent:[{"id": 1, "name":"外皮清洗", "subs": [{"id": 101, "name":"车门清洗","subs":""},{"id": 102, "name":"车窗清洗","subs":""}]},
-          {"id": 2, "name":"吸污", "subs":""},
-          {"id": 3, "name":"车顶清洗", "subs":""},
-          {"id": 4, "name":"污箱清洗", "subs": [{"id": 103, "name":"污箱盖清洗","subs":""},{"id": 104, "name":"污箱体清洗","subs":""}]},
-          {"id": 5, "name":"构架清洗", "subs":""},
-          {"id": 6, "name":"吸污", "subs":""},
-          {"id": 7, "name":"车顶清洗", "subs":""},
-          {"id": 8, "name":"污箱清洗", "subs": [{"id": 103, "name":"污箱盖清洗","subs":""},{"id": 104, "name":"污箱体清洗","subs":""}]},
-          {"id": 9, "name":"构架清洗", "subs":""},
+        workContent:[{"id": 1, "name":"外皮清洗", "subs": [{"id": 101, "name":"车门清洗","subs":[]},{"id": 102, "name":"车窗清洗","subs":[]}]},
+          {"id": 2, "name":"吸污", "subs":[]},
+          {"id": 3, "name":"车顶清洗", "subs": []},
+          {"id": 4, "name":"污箱清洗", "subs": [{"id": 103, "name":"污箱盖清洗","subs":[]},{"id": 104, "name":"污箱体清洗","subs":[]}]},
+          {"id": 5, "name":"构架清洗", "subs":[]},
+          {"id": 6, "name":"吸污", "subs":[]},
+          {"id": 7, "name":"车顶清洗", "subs":[]},
+          {"id": 8, "name":"污箱清洗", "subs": [{"id": 103, "name":"污箱盖清洗","subs":[]},{"id": 104, "name":"污箱体清洗","subs":[]}]},
+          {"id": 9, "name":"构架清洗", "subs":[]},
         ]
       }
     },
@@ -191,9 +191,46 @@
         this.form.trainGroup = item.train_group;
       },
       showChildren(index) {
-        alert(index)
-      }
 
+      },
+      parentCheck(item) {
+        var exist = false
+        for(let i=0; i< this.form.choosedContent.length; i++) {
+            if(this.form.choosedContent[i].id == item.id) {
+                this.form.choosedContent.splice(i, 1);
+                exist = true;
+                break;
+            }
+        }
+        if( !exist) {
+            this.form.choosedContent.push(item)
+        }
+      },
+      childCheck(item,subItem) {
+          var parentExist = false
+          for(let i=0; i< this.form.choosedContent.length; i++) {
+              if(this.form.choosedContent[i].id == item.id) {
+                  parentExist = true
+                  var subExist = false;
+                  for(let j=0; j<this.form.choosedContent[i].subs.length; j++) {
+                      if(this.form.choosedContent[i].subs[j].id == subItem.id) {
+                          this.form.choosedContent[i].subs.splice(j, 1)
+                          subExist = true;
+                          break;
+                      }
+                  }
+                  if(!subExist) {
+                      this.form.choosedContent[i].subs.push(subItem);
+                  }
+                  if(this.form.choosedContent[i].subs.length == 0) {
+                      this.form.choosedContent.splice(i, 1)
+                  }
+              }
+          }
+          if(!parentExist){
+              this.form.choosedContent.push({"id":item.id, "name":item.name,"subs":[subItem]})
+          }
+      }
     },
     computed: {
 
